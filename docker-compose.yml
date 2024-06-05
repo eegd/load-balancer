@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: ./Dockerfile
+    command: "uvicorn api.main:app --port 8000 --host 0.0.0.0"
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  redis:
+    container_name: load-balancer-redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      timeout: 10s
+      retries: 10
+    image: "redis:7-alpine"
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    container_name: load-balancer-rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      timeout: 10s
+      retries: 10
+    image: "rabbitmq:management"
+    environment:
+      RABBITMQ_USERNAME: user
+      RABBITMQ_PASSWORD: bitnami
+    ports:
+      - "5672:5672"
+      - "15672:15672"

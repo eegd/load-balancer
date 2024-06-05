@@ -30,7 +30,6 @@ class AmqpFactory:
             )
         except Exception as err:
             self.logger.error(f"[amqp_factory] {err}")
-            sys.exit(0)
 
     def create_channel(self) -> BlockingChannel:
         if not self._is_connected():
@@ -39,12 +38,11 @@ class AmqpFactory:
             self.logger.warning(
                 f"[amqp_factory] create channel 'exchange_name': '{self.exchange_name}', 'queue_name': '{self.queue_name}'"
             )
-            channel = self.connection.channel()  # type: ignore
+            channel = self.connection.channel()
             channel.queue_declare(queue=self._cfg.QUEUE_NAME, durable=True)
             return channel
         except Exception as err:
             self.logger.error(f"[amqp_factory] {err}")
-            sys.exit(0)
 
     def _is_connected(self):
         return self.connection is not None
